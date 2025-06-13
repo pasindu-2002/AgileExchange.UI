@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
-
+import PreloaderWrapper from "@/components/PreloaderWrapper";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -27,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased bg-[#0f172a] text-white">
+        <PreloaderWrapper />
         {children}
       </body>
     </html>
