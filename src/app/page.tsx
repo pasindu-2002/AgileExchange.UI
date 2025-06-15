@@ -2,13 +2,32 @@
 
 import { TrendingUp, ArrowRight, BarChart3 } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import SimplePreloader from '@/components/SimplePreloader';
 
 export default function Home() {
   const router = useRouter();
+  const [showPreloader, setShowPreloader] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  useEffect(() => {
+    // Hide preloader after 3 seconds to showcase all animations
+    const timer = setTimeout(() => {
+      setShowPreloader(false);
+      setIsLoaded(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
   
   const handleStartClick = () => {
     router.push('/login');
   };
+
+  // Show preloader during initial load
+  if (showPreloader) {
+    return <SimplePreloader />;
+  }
   
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
