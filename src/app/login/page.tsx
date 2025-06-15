@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ArrowRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { api } from '../../services/api';
 
 // Define user roles
 export type UserRole = 'team_member' | 'scrum_master' | 'product_owner';
@@ -12,10 +13,10 @@ export default function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'team_member' as UserRole,
     rememberMe: false
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, checked, type } = e.target as HTMLInputElement;
@@ -27,27 +28,27 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Here you would typically handle authentication
-    // For example, send a request to your authentication API
-    var email = "abc@123.com";
-    var password = "12345678";
-    if (formData.email !== email || formData.password !== password) {
+    try {
+      // Call the backend API for authentication
+      const response = await api.auth.login(formData.email, formData.password);
+      
+      // Store authentication data
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('userRole', response.user.role);
+      localStorage.setItem('userEmail', response.user.email);
+      localStorage.setItem('userName', response.user.firstName);
+      localStorage.setItem('userId', response.user.id.toString());
+      
+      // Redirect to dashboard
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
       setIsLoading(false);
-      alert("Invalid email or password");
-      return;
     }
-
-    // For now, simulate a login process with a timeout
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Store user role in localStorage for persistence
-      localStorage.setItem('userRole', formData.role);
-      localStorage.setItem('userEmail', formData.email);
-      
-      router.push('/dashboard'); // Redirect to dashboard after login
-    }, 1500);
   };
 
   return (
@@ -62,6 +63,11 @@ export default function Login() {
         </div>
         
         <div className="bg-[#1e293b] border border-gray-800 rounded-xl p-6 sm:p-8">
+          {error && (
+            <div className="mb-4 p-3 bg-red-900/20 border border-red-800 rounded-lg">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
             <div className="space-y-5">
               <div>
@@ -91,19 +97,7 @@ export default function Login() {
                 />
               </div>
               
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-1">Role</label>                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg bg-[#0f172a] border border-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="team_member">Team Member</option>
-                  <option value="scrum_master">Scrum Master</option>
-                  <option value="product_owner">Product Owner</option>
-                </select>
-              </div>
+
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
